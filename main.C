@@ -10,12 +10,16 @@ enum SQUARE { O=1, X=2, FREE=0 };
 
 class tictacto_games_generator {
 public:
-  tictacto_games_generator() : board(0), moves(0), duplicate_games(0) {};
+  tictacto_games_generator() : board(0), moves(0), duplicate_games(0), X_wins(false), O_wins(false), its_a_draw(false),
+                               wins_for_X(0), wins_for_O(0), draws(0) {};
 
   void init_for_next_game() {
     board = 0;
     moves = 0;
     moves_for_replay.erase(moves_for_replay.begin(),moves_for_replay.end());
+    X_wins = false;
+    O_wins = false;
+    its_a_draw = false;
   };
   
   unsigned int opponent(unsigned int side) {
@@ -42,9 +46,12 @@ public:
   };
   
   void record_game() {
-    if (unique_games.find(moves) == unique_games.end())
+    if (unique_games.find(moves) == unique_games.end()) {
       unique_games.insert(moves);
-    else
+      if (X_wins) wins_for_X++;
+      if (O_wins) wins_for_O++;
+      if (its_a_draw) draws++;  
+    } else
       duplicate_games++;
   };
 
@@ -158,7 +165,7 @@ public:
     bool game_over = false;
 
     int side = ((rand() & 1)==1) ? X : O;
-
+  
     while(!game_over) {
       int ns;
       if (must_block(ns,side)) {
@@ -172,6 +179,10 @@ public:
 	record_move(ns, side);
 	if (win(side)) {
 	  game_over = true;
+	  if (side==X)
+	    X_wins = true;
+	  else
+	    O_wins = true;
 	  if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
 	} else if (side == X)
 	  side = O;
@@ -179,6 +190,7 @@ public:
 	  side = X;
 	if (!game_over && draw()) {
 	  game_over = true;
+	  its_a_draw = true;
 	  if (display_outcome) std::cout << "DRAW\n";
 	}
       }
@@ -187,12 +199,22 @@ public:
     return moves;
   };
 
+  int num_wins_X() { return wins_for_X; };
+  int num_wins_O() { return wins_for_O; };
+  int num_draws()  { return draws; };
+  
 private:
   unsigned int board;
   unsigned long long moves;
   std::vector<unsigned int> moves_for_replay;
   std::set<unsigned long long> unique_games;
   int duplicate_games;
+  bool X_wins;
+  bool O_wins;
+  bool its_a_draw;
+  int wins_for_X;
+  int wins_for_O;
+  int draws;  
 };
 
 int main(int argc, char **argv) {
@@ -200,13 +222,16 @@ int main(int argc, char **argv) {
 
   tictacto_games_generator my_generator;
   
-  for (int i = 0; i < 2; i++) {
-    my_generator.random_game(true);
+  for (int i = 0; i < 5000000; i++) {
+    my_generator.random_game();
     my_generator.record_game();
-    my_generator.replay_game();
+    //my_generator.replay_game();
   }
   
-  std::cout << "# of unique games: " << my_generator.num_unique_games() << std::endl;
-  std::cout << "# of duplicate games: " << my_generator.num_duplicate_games() << std::endl;
+  std::cout << "# of unique games:    " << my_generator.num_unique_games() << "\n";
+  std::cout << "# of duplicate games: " << my_generator.num_duplicate_games() << "\n";
+  std::cout << "# of wins for X:      " << my_generator.num_wins_X() << "\n";
+  std::cout << "# of wins for O:      " << my_generator.num_wins_O() << "\n";
+  std::cout << "# of draws:           " << my_generator.num_draws() << std::endl;
 }
 
