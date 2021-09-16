@@ -1,17 +1,28 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <map>
 #include <vector>
 
 #include <time.h>
 
 enum SQUARE { O=1, X=2, FREE=0 };
 
+// used when recording games:
+
+struct game_record {
+  game_record() {};
+  game_record(int _side, bool _is_win, unsigned long long _moves) : side(_side),is_win(_is_win),moves(_moves) {};
+  
+  int side;   // O=1, X=2
+  bool is_win; // true for win, else draw
+  unsigned long long moves; // see tictacto_games_generator.record_move method
+};
 
 class tictacto_games_generator {
 public:
-  tictacto_games_generator() : board(0), moves(0), duplicate_games(0), X_wins(false), O_wins(false), its_a_draw(false),
-                               wins_for_X(0), wins_for_O(0), draws(0) {};
+  tictacto_games_generator() : board(0), side(X), moves(0), duplicate_games(0), X_wins(false), O_wins(false),
+			       its_a_draw(false), wins_for_X(0), wins_for_O(0), draws(0) {};
 
   void init_for_next_game() {
     board = 0;
@@ -47,7 +58,8 @@ public:
   
   void record_game() {
     if (unique_games.find(moves) == unique_games.end()) {
-      unique_games.insert(moves);
+      struct game_record outcome(side,!its_a_draw,moves);
+      unique_games[moves] = outcome;
       if (X_wins) wins_for_X++;
       if (O_wins) wins_for_O++;
       if (its_a_draw) draws++;  
@@ -164,7 +176,7 @@ public:
 
     bool game_over = false;
 
-    int side = ((rand() & 1)==1) ? X : O;
+    side = ((rand() & 1)==1) ? X : O;
   
     while(!game_over) {
       int ns;
@@ -205,9 +217,10 @@ public:
   
 private:
   unsigned int board;
+  int side;
   unsigned long long moves;
   std::vector<unsigned int> moves_for_replay;
-  std::set<unsigned long long> unique_games;
+  std::map<unsigned long long, struct game_record> unique_games;
   int duplicate_games;
   bool X_wins;
   bool O_wins;
