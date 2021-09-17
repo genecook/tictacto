@@ -1,10 +1,15 @@
 #include <iostream>
 #include <string>
-#include <set>
 #include <map>
 #include <vector>
+#include <exception>
+#include <iostream>
 
 #include <time.h>
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/foreach.hpp>
 
 enum SQUARE { O=1, X=2, FREE=0 };
 
