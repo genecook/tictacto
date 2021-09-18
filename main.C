@@ -181,7 +181,7 @@ public:
 
     bool game_over = false;
 
-    side = ((rand() & 1)==1) ? X : O;
+    side = X; // X always goes first...
   
     while(!game_over) {
       int ns;
