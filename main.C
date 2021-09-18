@@ -27,7 +27,8 @@ struct game_record {
 class tictacto_games_generator {
 public:
   tictacto_games_generator() : board(0), side(X), moves(0), duplicate_games(0), X_wins(false), O_wins(false),
-			       its_a_draw(false), wins_for_X(0), wins_for_O(0), draws(0) {};
+			       its_a_draw(false), wins_for_X(0), wins_for_O(0), draws(0),shortest_game(99),
+			       longest_game(0) {};
 
   void init_for_next_game() {
     board = 0;
@@ -70,6 +71,11 @@ public:
       if (its_a_draw) draws++;  
     } else
       duplicate_games++;
+
+    if (moves_for_replay.size() < shortest_game)
+      shortest_game = moves_for_replay.size();
+    else if (moves_for_replay.size() > longest_game)
+      longest_game = moves_for_replay.size();
   };
 
   int num_unique_games() {
@@ -219,6 +225,9 @@ public:
   int num_wins_X() { return wins_for_X; };
   int num_wins_O() { return wins_for_O; };
   int num_draws()  { return draws; };
+
+  int the_shortest_game() { return shortest_game; };
+  int the_longest_game() { return longest_game; };
   
 private:
   unsigned int board;
@@ -233,6 +242,8 @@ private:
   int wins_for_X;
   int wins_for_O;
   int draws;  
+  int shortest_game;
+  int longest_game;    
 };
 
 int main(int argc, char **argv) {
@@ -240,7 +251,7 @@ int main(int argc, char **argv) {
 
   tictacto_games_generator my_generator;
   
-  for (int i = 0; i < 5000000; i++) {
+  for (int i = 0; i < 10000000; i++) {
     my_generator.random_game();
     my_generator.record_game();
     //my_generator.replay_game();
@@ -251,5 +262,9 @@ int main(int argc, char **argv) {
   std::cout << "# of wins for X:      " << my_generator.num_wins_X() << "\n";
   std::cout << "# of wins for O:      " << my_generator.num_wins_O() << "\n";
   std::cout << "# of draws:           " << my_generator.num_draws() << std::endl;
+  std::cout << "shortest game:        " << my_generator.the_shortest_game() << std::endl;
+  std::cout << "longest game:         " << my_generator.the_longest_game() << std::endl;
+    
+
 }
 
