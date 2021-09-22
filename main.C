@@ -210,10 +210,12 @@ public:
       // proceed only if square is free...
       if (square(ns) != FREE)
 	continue;
-      
+
+      // make the move...
       set_square(ns, side);
       record_move(ns, side);
-      
+
+      // check for win or draw...
       if (win(side)) {
 	game_over = true;
 	if (side==X)
@@ -221,16 +223,22 @@ public:
 	else
 	  O_wins = true;
 	if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
-      } else if (side == X)
+	break;
+      }
+
+      if (draw()) {
+	game_over = true;
+	its_a_draw = true;
+	if (display_outcome) std::cout << "DRAW\n";
+	break;
+      }
+
+      // switch sides...
+      if (side == X)
 	side = O;
       else
 	side = X;
       
-      if (!game_over && draw()) {
-	game_over = true;
-	its_a_draw = true;
-	if (display_outcome) std::cout << "DRAW\n";
-      } 
     }
   
     return moves;
