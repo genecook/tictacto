@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include <exception>
 #include <iostream>
@@ -51,6 +52,8 @@ public:
     moves_for_replay.push_back(next_move);
   };
 
+  int move_count() { return (int) moves_for_replay.size(); };
+  
   void replay_game() {
     board = 0;
     for (auto mi = moves_for_replay.begin(); mi != moves_for_replay.end(); mi++) {
@@ -91,10 +94,13 @@ public:
   };
 
   void set_square(int index, unsigned int nval) {
+    unique_board_states[move_count()].insert(board);
     int binx = index * 2;
     board = (board | (3 << binx)) ^ (3 << binx) | (nval << binx);
   };
 
+  int num_board_states(int move) { return unique_board_states[move].size(); };
+  
   bool win(unsigned int side) {
     // wins horizontal...
     if ( square(0) == square(1) && square(1) == square(2) && square(0) == side ) return true;
@@ -157,7 +163,7 @@ public:
 
   bool claim_win(int &block_square, unsigned int side) {
     return must_block(block_square, side, true);
-  }
+  };
   
   bool draw() {
     // will ASSUME (for now) that game is not draw if any square is free...
@@ -190,33 +196,41 @@ public:
     side = X; // X always goes first...
   
     while(!game_over) {
+      // choose square for next move, this side...
+      
       int ns;
+      
       if (must_block(ns,side)) {
 	// block win for opponent...
       } else if (claim_win(ns,side)) {
 	// this square wins...
       } else
 	ns = (rand() & 0xf) % 9;
-      if (square(ns) == FREE) {
-	set_square(ns, side);
-	record_move(ns, side);
-	if (win(side)) {
-	  game_over = true;
-	  if (side==X)
-	    X_wins = true;
-	  else
-	    O_wins = true;
-	  if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
-	} else if (side == X)
-	  side = O;
+
+      // proceed only if square is free...
+      if (square(ns) != FREE)
+	continue;
+      
+      set_square(ns, side);
+      record_move(ns, side);
+      
+      if (win(side)) {
+	game_over = true;
+	if (side==X)
+	  X_wins = true;
 	else
-	  side = X;
-	if (!game_over && draw()) {
-	  game_over = true;
-	  its_a_draw = true;
-	  if (display_outcome) std::cout << "DRAW\n";
-	}
-      }
+	  O_wins = true;
+	if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
+      } else if (side == X)
+	side = O;
+      else
+	side = X;
+      
+      if (!game_over && draw()) {
+	game_over = true;
+	its_a_draw = true;
+	if (display_outcome) std::cout << "DRAW\n";
+      } 
     }
   
     return moves;
@@ -235,6 +249,7 @@ private:
   unsigned long long moves;
   std::vector<unsigned int> moves_for_replay;
   std::map<unsigned long long, struct game_record> unique_games;
+  std::set<unsigned int> unique_board_states[16];
   int duplicate_games;
   bool X_wins;
   bool O_wins;
@@ -264,7 +279,11 @@ int main(int argc, char **argv) {
   std::cout << "# of draws:           " << my_generator.num_draws() << std::endl;
   std::cout << "shortest game:        " << my_generator.the_shortest_game() << std::endl;
   std::cout << "longest game:         " << my_generator.the_longest_game() << std::endl;
-    
-
+  int total_board_states = 0;
+  for (int i = 0; (i < 16) && (my_generator.num_board_states(i) > 0); i++) {
+    std::cout << "# of board states (move " << (i + 1) << "): " << my_generator.num_board_states(i) << std::endl;
+    total_board_states += my_generator.num_board_states(i);
+  }
+  std::cout << "total # of board states: " << total_board_states << std::endl;  
 }
 
