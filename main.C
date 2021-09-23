@@ -96,11 +96,11 @@ public:
        int side = FREE;
        
        for (int mi = 0; mi < 16; mi++) {
-	 int next_move = ((uiter->second.moves) >> (6 * mi)) & 0x3f; 
+	 int next_move = ((uiter->second.moves) >> (6 * mi)) & 0x3f;
+	 if (next_move == 0)
+	   break;
 	 int index = next_move >> 2;
 	 std::string side = ((next_move & 3) == 2) ? "X" : "O";
-	 if (index == 0)
-	   break;
 	 char tbuf[256];
 	 sprintf(tbuf,"%s.moves.move_%d.index",game_node_name,mi);
 	 tree.add(tbuf,index);
