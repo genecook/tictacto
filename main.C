@@ -12,6 +12,8 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
 
+namespace pt = boost::property_tree;
+
 enum SQUARE { O=1, X=2, FREE=0 };
 
 // used when recording games:
@@ -64,7 +66,52 @@ public:
       std::cout << "\n";
     }
   };
-  
+
+  void write_games_file(std::string gfile) {
+    pt::ptree tree;
+
+    int game_index = 0;
+
+    for (auto uiter = unique_games.begin(); uiter != unique_games.end(); uiter++) {
+       game_index++;
+       char game_node_name[128];
+       sprintf(game_node_name,"games.game_%d",game_index);
+
+       char game_id[128];
+       sprintf(game_id,"0x%08llx",uiter->first);
+
+       char tbuf[256];
+       sprintf(tbuf,"%s.side",game_node_name);
+       if (uiter->second.side == X)
+	 tree.add(tbuf,"X");
+       else
+	 tree.add(tbuf,"X");
+       sprintf(tbuf,"%s.outcome",game_node_name);
+       if (uiter->second.is_win)
+	 tree.add(tbuf,"WIN");
+       else
+	 tree.add(tbuf,"DRAW");
+	 
+       int index = 99;
+       int side = FREE;
+       
+       for (int mi = 0; mi < 16; mi++) {
+	 int next_move = ((uiter->second.moves) >> (6 * mi)) & 0x3f; 
+	 int index = next_move >> 2;
+	 std::string side = ((next_move & 3) == 2) ? "X" : "O";
+	 if (index == 0)
+	   break;
+	 char tbuf[256];
+	 sprintf(tbuf,"%s.moves.move_%d.index",game_node_name,mi);
+	 tree.add(tbuf,index);
+	 sprintf(tbuf,"%s.moves.move_%d.side",game_node_name,mi);
+	 tree.add(tbuf,side);
+       }
+    }
+
+    pt::write_xml(gfile,tree);
+  };
+
   void record_game() {
     if (unique_games.find(moves) == unique_games.end()) {
       struct game_record outcome(side,!its_a_draw,moves);
@@ -269,16 +316,18 @@ private:
   int longest_game;    
 };
 
+
 int main(int argc, char **argv) {
   std::cout << "Generating random tic-tac-to games..." << std::endl;
 
   tictacto_games_generator my_generator;
   
-  for (int i = 0; i < 10000000; i++) {
+  for (int i = 0; i < 1; i++) {
     my_generator.random_game();
     my_generator.record_game();
-    //my_generator.replay_game();
   }
+
+  my_generator.write_games_file("ttt_games_data_raw.xml");
   
   std::cout << "# of unique games:    " << my_generator.num_unique_games() << "\n";
   std::cout << "# of duplicate games: " << my_generator.num_duplicate_games() << "\n";
@@ -292,6 +341,10 @@ int main(int argc, char **argv) {
     std::cout << "# of board states (move " << (i + 1) << "): " << my_generator.num_board_states(i) << std::endl;
     total_board_states += my_generator.num_board_states(i);
   }
-  std::cout << "total # of board states: " << total_board_states << std::endl;  
+  std::cout << "total # of board states: " << total_board_states << std::endl;
+
+  std::cout << "\ngames data file: ttt_games_data.xml" << std::endl;
+  
+  return system("xmllint --format ttt_games_data_raw.xml >ttt_games_data.xml");
 }
 
