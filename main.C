@@ -94,17 +94,19 @@ public:
 	 
        int index = 99;
        int side = FREE;
-       
-       for (int mi = 0; mi < 16; mi++) {
-	 int next_move = ((uiter->second.moves) >> (6 * mi)) & 0x3f;
+
+       int mcnt = 0;
+       for (int mi = 9; mi >= 0; mi--) {
+	 unsigned int next_move = ((uiter->second.moves) >> (6 * mi)) & 0x3f;
 	 if (next_move == 0)
-	   break;
+	   continue;
+	 mcnt++;
 	 int index = next_move >> 2;
 	 std::string side = ((next_move & 3) == 2) ? "X" : "O";
 	 char tbuf[256];
-	 sprintf(tbuf,"%s.moves.move_%d.index",game_node_name,mi);
+	 sprintf(tbuf,"%s.moves.move_%d.index",game_node_name,mcnt);
 	 tree.add(tbuf,index);
-	 sprintf(tbuf,"%s.moves.move_%d.side",game_node_name,mi);
+	 sprintf(tbuf,"%s.moves.move_%d.side",game_node_name,mcnt);
 	 tree.add(tbuf,side);
        }
     }
@@ -247,10 +249,12 @@ public:
       
       int ns;
       
-      if (must_block(ns,side)) {
-	// block win for opponent...
-      } else if (claim_win(ns,side)) {
+      if (claim_win(ns,side)) {
 	// this square wins...
+	//std::cout << "WIN: ns: " << ns << " side: " << ((side==X) ? "X" : "O") << std::endl;
+      } else if (must_block(ns,side)) {
+	// block win for opponent...
+	//std::cout << "BLOCK win for opponent: ns: " << ns << " side: " << ((side==X) ? "X" : "O") << std::endl;
       } else
 	ns = (rand() & 0xf) % 9;
 
@@ -259,6 +263,7 @@ public:
 	continue;
 
       // make the move...
+      //std::cout << " next move: ns " << ns << " side: " << ((side==X) ? "X" : "O") << std::endl;
       set_square(ns, side);
       record_move(ns, side);
 
@@ -322,7 +327,7 @@ int main(int argc, char **argv) {
 
   tictacto_games_generator my_generator;
   
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < 10000; i++) {
     my_generator.random_game();
     my_generator.record_game();
   }
