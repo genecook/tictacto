@@ -55,6 +55,7 @@ public:
   
   void replay_game() {
     board = 0;
+    
     for (auto mi = moves_for_replay.begin(); mi != moves_for_replay.end(); mi++) {
       unsigned int index = (*mi) >> 2;
       unsigned int nval = (*mi) & 3;
@@ -137,7 +138,10 @@ public:
   unsigned int square(int index) { return (board >> (index * 2)) & 3; };
 
   void set_square(int index, unsigned int nval) {
-    unique_board_states[move_count()].insert(board);
+    if (unique_board_states[move_count()].find(board) != unique_board_states[move_count()].end()) {
+      //std::cout << "Board state/move 0x" << std::hex << board << std::dec << "/" << move_count() << " is NOT unique?" << std::endl;
+    } else
+      unique_board_states[move_count()].insert(board);
     int binx = index * 2;
     board = (board | (3 << binx)) ^ (3 << binx) | (nval << binx);
   };
@@ -333,11 +337,14 @@ int main(int argc, char **argv) {
   std::cout << "# of draws:           " << my_generator.num_draws() << std::endl;
   std::cout << "shortest game:        " << my_generator.the_shortest_game() << std::endl;
   std::cout << "longest game:         " << my_generator.the_longest_game() << std::endl;
+
   int total_board_states = 0;
+  
   for (int i = 0; (i < 16) && (my_generator.num_board_states(i) > 0); i++) {
     std::cout << "# of board states (move " << (i + 1) << "): " << my_generator.num_board_states(i) << std::endl;
     total_board_states += my_generator.num_board_states(i);
   }
+  
   std::cout << "total # of board states: " << total_board_states << std::endl;
 
   std::cout << "\ngames data file: ttt_games_data.xml" << std::endl;
