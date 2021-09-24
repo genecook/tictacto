@@ -13,6 +13,11 @@ add_executable(ttt_games_gen ttt_games_gen.C)
 
 target_link_libraries(ttt_games_gen ${Boost_LIBRARIES})
 
+add_executable(ttt_nets_builder gen_neural_network.C)
+
+target_link_libraries(ttt_nets_builder ${Boost_LIBRARIES})
+
+
 enable_testing()
 
 add_test(NAME gen_games
