@@ -34,6 +34,7 @@ public:
 			       longest_game(0) {};
 
   void init_for_next_game() {
+    // reset current game state...
     board = 0;
     moves = 0;
     moves_for_replay.erase(moves_for_replay.begin(),moves_for_replay.end());
@@ -42,16 +43,12 @@ public:
     its_a_draw = false;
   };
   
-  unsigned int opponent(unsigned int side) {
-    if (side == X)
-      return O;
-    return X;
-  };
+  unsigned int opponent(unsigned int side) { return (side == X) ? O : X; };
 
   void record_move(int index, unsigned int side) {
-    unsigned int next_move = (index << 2) | side;
-    moves = (moves << 6) | next_move;
-    moves_for_replay.push_back(next_move);
+    unsigned int next_move = (index << 2) | side;  // encode move: board square index + side
+    moves = (moves << 6) | next_move;       // moves then will include all moves made during some game
+    moves_for_replay.push_back(next_move);  // also record individual moves for convenience when replaying current game
   };
 
   int move_count() { return (int) moves_for_replay.size(); };
@@ -114,6 +111,9 @@ public:
     pt::write_xml(gfile,tree);
   };
 
+  // record current game, if it represents a unique game, based on the moves made.
+  // update some game stats...
+  
   void record_game() {
     if (unique_games.find(moves) == unique_games.end()) {
       struct game_record outcome(side,!its_a_draw,moves);
@@ -130,17 +130,11 @@ public:
       longest_game = moves_for_replay.size();
   };
 
-  int num_unique_games() {
-    return unique_games.size();
-  };
+  int num_unique_games() { return unique_games.size(); };
 
-  int num_duplicate_games() {
-    return duplicate_games;
-  };
+  int num_duplicate_games() { return duplicate_games; };
   
-  unsigned int square(int index) {
-    return (board >> (index * 2)) & 3;
-  };
+  unsigned int square(int index) { return (board >> (index * 2)) & 3; };
 
   void set_square(int index, unsigned int nval) {
     unique_board_states[move_count()].insert(board);
@@ -210,9 +204,7 @@ public:
     return false;
   };
 
-  bool claim_win(int &block_square, unsigned int side) {
-    return must_block(block_square, side, true);
-  };
+  bool claim_win(int &block_square, unsigned int side) { return must_block(block_square, side, true); };
   
   bool draw() {
     // will ASSUME (for now) that game is not draw if any square is free...
