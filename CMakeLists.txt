@@ -9,13 +9,13 @@ set(CMAKE_CXX_FLAGS "-O")
 
 find_package(Boost 1.62.0)
 
-add_executable(ttt_gen main.C)
+add_executable(ttt_games_gen ttt_games_gen.C)
 
-target_link_libraries(ttt_gen ${Boost_LIBRARIES})
+target_link_libraries(ttt_games_gen ${Boost_LIBRARIES})
 
 enable_testing()
 
-add_test(NAME test1
-         COMMAND sh -c "./ttt_gen")
+add_test(NAME gen_games
+         COMMAND sh -c "./ttt_games_gen")
 
 
