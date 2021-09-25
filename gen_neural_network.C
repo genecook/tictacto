@@ -27,6 +27,17 @@ public:
   void read_games_files(std::string &games_file) {
     pt::ptree tree;
     pt::read_xml(games_file, tree);
+
+    BOOST_FOREACH(pt::ptree::value_type &v, tree.get_child("games")) {
+      std::cout << v.first.data() << std::endl;
+      pt::ptree game_subtree = v.second;
+      std::string encoded_moves = game_subtree.get<std::string>("encoded_moves");
+      std::cout << "   " << encoded_moves << std::endl;
+      BOOST_FOREACH(pt::ptree::value_type &m, game_subtree.get_child("moves")) {
+	std::cout << "   " << m.first.data() << std::endl;
+      }
+    }
+
   };
 
   void build_network() {

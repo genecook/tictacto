@@ -72,23 +72,22 @@ public:
 
     for (auto uiter = unique_games.begin(); uiter != unique_games.end(); uiter++) {
        game_index++;
-       char game_node_name[128];
-       sprintf(game_node_name,"games.game_%d",game_index);
 
-       char game_id[128];
-       sprintf(game_id,"0x%08llx",uiter->first);
+       char game_subtree[128];
+       sprintf(game_subtree,"games.game_%d",game_index);
 
        char tbuf[256];
-       sprintf(tbuf,"%s.side",game_node_name);
-       if (uiter->second.side == X)
-	 tree.add(tbuf,"X");
-       else
-	 tree.add(tbuf,"X");
-       sprintf(tbuf,"%s.outcome",game_node_name);
-       if (uiter->second.is_win)
-	 tree.add(tbuf,"WIN");
-       else
-	 tree.add(tbuf,"DRAW");
+       sprintf(tbuf,"%s.encoded_moves",game_subtree);
+
+       char encoding[128];
+       sprintf(encoding,"0x%08llx",uiter->first);
+       tree.add(tbuf,encoding);
+       
+       sprintf(tbuf,"%s.side",game_subtree);
+       tree.add(tbuf,(uiter->second.side == X) ? "X" : "O");
+
+       sprintf(tbuf,"%s.outcome",game_subtree);
+       tree.add(tbuf,(uiter->second.is_win) ? "WIN" : "DRAW");
 	 
        int index = 99;
        int side = FREE;
@@ -101,10 +100,11 @@ public:
 	 mcnt++;
 	 int index = next_move >> 2;
 	 std::string side = ((next_move & 3) == 2) ? "X" : "O";
-	 char tbuf[256];
-	 sprintf(tbuf,"%s.moves.move_%d.index",game_node_name,mcnt);
+
+	 sprintf(tbuf,"%s.moves.move_%d.index",game_subtree,mcnt);
 	 tree.add(tbuf,index);
-	 sprintf(tbuf,"%s.moves.move_%d.side",game_node_name,mcnt);
+	 
+	 sprintf(tbuf,"%s.moves.move_%d.side",game_subtree,mcnt);
 	 tree.add(tbuf,side);
        }
     }
