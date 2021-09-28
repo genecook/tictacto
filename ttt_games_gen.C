@@ -73,24 +73,19 @@ public:
     for (auto uiter = unique_games.begin(); uiter != unique_games.end(); uiter++) {
        game_index++;
 
-       char game_subtree[128];
-       sprintf(game_subtree,"games.game_%d",game_index);
-
-       char tbuf[256];
-       sprintf(tbuf,"%s.encoded_moves",game_subtree);
-
+       pt::ptree game_subtree;
+       game_subtree.put("<xmlattr>.number",game_index);
+       
        char encoding[128];
        sprintf(encoding,"0x%08llx",uiter->first);
-       tree.add(tbuf,encoding);
-       
-       sprintf(tbuf,"%s.side",game_subtree);
-       tree.add(tbuf,(uiter->second.side == X) ? "X" : "O");
+       game_subtree.put("<xmlattr>.moves_encoded",encoding);
 
-       sprintf(tbuf,"%s.outcome",game_subtree);
-       tree.add(tbuf,(uiter->second.is_win) ? "WIN" : "DRAW");
+       game_subtree.add("<xmlattr>.outcome",(uiter->second.is_win) ? "WIN" : "DRAW");
 	 
        int index = 99;
        int side = FREE;
+
+       pt::ptree moves_subtree;
 
        int mcnt = 0;
        for (int mi = 9; mi >= 0; mi--) {
@@ -101,12 +96,18 @@ public:
 	 int index = next_move >> 2;
 	 std::string side = ((next_move & 3) == 2) ? "X" : "O";
 
-	 sprintf(tbuf,"%s.moves.move_%d.index",game_subtree,mcnt);
-	 tree.add(tbuf,index);
-	 
-	 sprintf(tbuf,"%s.moves.move_%d.side",game_subtree,mcnt);
-	 tree.add(tbuf,side);
+	 pt::ptree move_subtree;
+       
+	 move_subtree.add("<xmlattr>.number",mcnt);
+	 move_subtree.add("<xmlattr>.index",index);
+	 move_subtree.add("<xmlattr>.side",side);
+
+         moves_subtree.add_child("move",move_subtree);	 
        }
+
+       game_subtree.add_child("moves",moves_subtree);
+
+       tree.add_child("games.game",game_subtree);
     }
 
     pt::write_xml(gfile,tree);
