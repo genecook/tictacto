@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <qneuron.h>
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
@@ -19,85 +21,6 @@ const pt::ptree& empty_ptree() {
   static pt::ptree t;
   return t;
 }
-
-class Qneuron {
-public:
-  Qneuron() {};
-  Qneuron(unsigned long long _state, unsigned long long _input, bool _input_layer, bool _output_layer)
-    : state(_state), input_layer(_input_layer), output_layer(_output_layer) {
-    AddConnection(input_biases[_input]);
-    srand48(time(NULL));
-  };
-
-  bool InputLayer() { return input_layer; };
-  bool OutputLayer() { return output_layer; };
-  unsigned long long NextState() { return state; }; // this state's value will be used as a 'connection' to any next state(s)
-  void AddConnection(unsigned long long _input) {
-    input_biases[_input] = drand48(); // bias between 0 and 1.0
-  };
-  float Bias(unsigned long long input) { return input_biases[input]; };
-  void SetBias(unsigned long long input, float nval) { input_biases[input] = nval; };
-  
-private:
-  unsigned long long state;
-  bool input_layer;
-  bool output_layer;
-  std::map<unsigned long long, float> input_biases; // biases for each input
-};
-
-class QneuronNetwork {
-public:
-  QneuronNetwork() {};
-  void AddNeuron(unsigned long long state, unsigned long long previous_state, bool input_layer=false, bool output_layer=false) {
-    if (neurons.find(state) != neurons.end()) {
-      // add connection to existing neuron...
-      neurons[state].AddConnection(previous_state);
-    } else {
-      neurons[state] = Qneuron(state,previous_state,input_layer,output_layer);
-    }
-
-    std::map<unsigned long long, std::vector<unsigned long long>>::iterator ci = connections.find(previous_state);
-
-    if (ci == connections.end()) {
-      connections[previous_state].push_back(state);
-      return;
-    }
-    
-    bool connection_already_there = false;
-    for (auto si = (ci->second).begin(); si != (ci->second).end(); si++) {
-       if ( (*si) == state) {
-	 connection_already_there = true;
-	 break;
-       }
-    }
-    if (!connection_already_there)
-      connections[previous_state].push_back(state);
-  };
-
-  void ShowConnections() {
-    std::cout << " # of neurons: " << neurons.size() << ", # of connections: " << connections.size() << std::endl;
-    
-    std::cout << "Neurons:";
-    for (auto ni = neurons.begin(); ni != neurons.end(); ni++) {
-      std::cout << " 0x" << std::hex << ni->second.NextState() << std::dec;
-      std::cout << (ni->second.InputLayer() ? "(input)" : "") << (ni->second.OutputLayer() ? "(output)" : "");
-    }
-    std::cout << "\n";
-    std::cout <<   "Connections:\n";
-    for (auto ci = connections.begin(); ci != connections.end(); ci++) {
-      std::cout << "             0x" << std::hex << ci->first << " --->" << std::dec;
-       for (auto si = (ci->second).begin(); si != (ci->second).end(); si++) {
-	 std::cout << " 0x" << std::hex << (*si) << std::dec;
-       }
-       std::cout << "\n";
-    }
-    std::cout << std::endl;
-  };
-  
-private:
-  std::map<unsigned long long, Qneuron> neurons; // set of all neurons, indexed by state
-  std::map<unsigned long long, std::vector<unsigned long long>> connections; // connections between neurons...
-};
 
 enum SQUARE { O=1, X=2, FREE=0 };
 
