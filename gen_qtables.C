@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <qneuron.h>
+#include <qtable.h>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>

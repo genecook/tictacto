@@ -11,15 +11,9 @@ find_package(Boost 1.62.0)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-#add_library(qneuron qneuron.C)
-
 add_executable(ttt_games_gen ttt_games_gen.C)
 
-#target_link_libraries(ttt_games_gen qneuron ${Boost_LIBRARIES})
-
-add_executable(ttt_nets_builder gen_neural_network.C)
-
-#target_link_libraries(ttt_nets_builder qneuron ${Boost_LIBRARIES})
+add_executable(ttt_qtable_builder gen_qtables.C)
 
 
 enable_testing()
