@@ -30,6 +30,10 @@ public:
   tictacto_neural_network_generator(std::string neural_nets_builder_file,std::string games_file) {
     read_games_files(games_file);
     build_network();
+
+    std::cout << "# of Qtable states: " << my_qtable.StatesCount() << "\n";
+    std::cout << "Highest Qtable state action count: " << my_qtable.HighActionCount() << std::endl;
+    
     write_nets_builder_file(neural_nets_builder_file);
   };
 
@@ -50,23 +54,28 @@ public:
     std::cout << "   encoded moves: 0x" << std::hex << encoded_moves << std::dec << std::endl;
     std::cout << "   outcome: " << (is_win ? "WIN" : "DRAW") << std::endl;
 
-    unsigned long long previous_board_state = 0, next_board_state = 0;
+    unsigned int previous_board_state = 0, next_board_state = 0;
     
     for (unsigned int i = 0; i < moves.size(); i++) {
        std::cout << "   move:  board index=" << moves[i].board_index << ", side=" << ((moves[i].side==X) ? "X" : "O");
 
        previous_board_state = next_board_state;
 
-       int binx = moves[i].board_index * 2;
+       unsigned int binx = moves[i].board_index * 2;
        next_board_state = (next_board_state | (3 << binx)) ^ (3 << binx) | (moves[i].side << binx);
 
+       unsigned int action = binx | moves[i].side==X;
+       
        std::cout << " prev-state: 0x" << std::hex << previous_board_state << " next-state: 0x"
 		 << next_board_state << std::dec << std::endl;
-       
-       //my_network.AddNeuron( next_board_state, previous_board_state, (i==0), (i==(moves.size()-1) ) );
-    }
 
-    //my_network.ShowConnections();
+       try {
+         my_qtable.AddState( previous_board_state, action );
+       } catch(std::runtime_error & e) {
+	 std::cout << e.what() << std::endl;
+	 throw std::runtime_error("One or more Qtable errors. Cannot continue.");
+       }
+    }
   };
   
   void read_games_files(std::string &games_file) {

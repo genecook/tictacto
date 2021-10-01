@@ -21,4 +21,7 @@ enable_testing()
 add_test(NAME gen_games
          COMMAND sh -c "./ttt_games_gen")
 
+add_test(NAME gen_qtable
+         COMMAND sh -c "./ttt_qtable_builder")
+
 
