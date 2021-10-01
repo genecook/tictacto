@@ -24,17 +24,16 @@ const pt::ptree& empty_ptree() {
 
 enum SQUARE { O=1, X=2, FREE=0 };
 
-class tictacto_neural_network_generator {
+class tictacto_qtable_generator {
 public:
-  tictacto_neural_network_generator() {};
-  tictacto_neural_network_generator(std::string neural_nets_builder_file,std::string games_file) {
+  tictacto_qtable_generator() {};
+  tictacto_qtable_generator(std::string qtable_file,std::string games_file) {
     read_games_files(games_file);
-    build_network();
 
     std::cout << "# of Qtable states: " << my_qtable.StatesCount() << "\n";
     std::cout << "Highest Qtable state action count: " << my_qtable.HighActionCount() << std::endl;
     
-    write_nets_builder_file(neural_nets_builder_file);
+    write_qtable_file(qtable_file);
   };
 
   unsigned long long encode_move(unsigned long long moves, int index, unsigned int side) {
@@ -130,10 +129,7 @@ public:
 
   };
 
-  void build_network() {
-  };
-
-  void write_nets_builder_file(std::string &neural_nets_builder_file) {
+  void write_qtable_file(std::string &qtable_file) {
   };
   
 private:
@@ -146,11 +142,11 @@ int main(int argc, char **argv) {
   int rcode = 0;
   
   try {
-    tictacto_neural_network_generator my_nets_builder("ttt_neural_nets_builder.xml", "ttt_games_data.xml");
-    std::cout << "Neural nets builder file: " << "ttt_neural_nets_builder.xml" << std::endl;
+    tictacto_qtable_generator my_qtable_builder("ttt_qtable_data.xml", "ttt_games_data.xml");
+    std::cout << "Qtable data file: " << "ttt_qtable_data.xml" << std::endl;
   } catch(...) {
     rcode = -1;
-    std::cerr << "Problems generating neural network?" << std::endl;
+    std::cerr << "Problems generating qtable from games data?" << std::endl;
   }
 
   return rcode;
