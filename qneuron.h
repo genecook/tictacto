@@ -9,41 +9,79 @@
 #include <stdlib.h>
 #include <time.h>
 
-class Qneuron {
+//    srand48(time(NULL));
+
+class Qstate {
 public:
-  Qneuron() {};
-  Qneuron(unsigned long long _state, unsigned long long _input, int _action, bool _input_layer, bool _output_layer)
-    : state(_state), input_layer(_input_layer), output_layer(_output_layer), action(_action) {
-    AddConnection(input_biases[_input]);
-    srand48(time(NULL));
+  Qstate() {};
+  Qstate(unsigned int _state, unsigned int _action) : state(_state) {
+    AddAction(_action);
   };
 
-  bool InputLayer() { return input_layer; };
-  bool OutputLayer() { return output_layer; };
-  unsigned long long NextState() { return state; }; // this state's value will be used as a 'connection' to any next state(s)
-  void AddConnection(unsigned long long _input) {
-    input_biases[_input] = drand48(); // bias between 0 and 1.0
+  unsigned int State() { return state; };
+
+  void AddAction(unsigned int _action) {
+    if (actions.find(_action) == actions.end())
+      actions[(_action)] = 0.0;
   };
-  float Bias(unsigned long long input) { return input_biases[input]; };
-  void SetBias(unsigned long long input, float nval) { input_biases[input] = nval; };
-  int Action() { return action; };
+  
+  bool ActionBias(float &bias, unsigned int _action) {
+    std::map<unsigned int, float>::iterator a_iter = actions.find(_action);
+    if (a_iter == actions.end())
+      return false;
+    bias = actions[_action];
+    return true;
+  };
+  
+  void UpdateActionBias(unsigned int _action, float _qval) { actions[_action] = _qval; };
+
+  void Actions(std::vector<unsigned int> &_actions) {
+    for (auto a_iter = actions.begin(); a_iter != actions.end(); a_iter++) {
+       _actions.push_back(a_iter->first);
+    }
+  };
   
 private:
-  unsigned long long state;
-  bool input_layer;
-  bool output_layer;
-  std::map<unsigned long long, float> input_biases; // biases for each input
-  int action;
+  unsigned int state;
+  std::map<unsigned int, float> actions; // index is action, value is Q-value for each action
 };
 
-class QneuronNetwork {
+
+class Qtable {
 public:
-  QneuronNetwork() {};
-  void AddNeuron(unsigned long long state, unsigned long long previous_state, int action = -1, bool input_layer=false, bool output_layer=false);
-  void ShowConnections();
+  Qtable() {};
+
+  void AddState(unsigned int _state, int _action) {
+    std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
+    if (s_iter != states.end())
+      throw std::runtime_error("State already exists???");
+    states[_state] = Qstate(_state,_action);
+  };
+
+  bool StateExists(unsigned int _state) { return (states.find(_state) != states.end()); };
+  
+  void AddAction(unsigned int _state, int _action) {
+    std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
+    if (s_iter == states.end())
+      throw std::runtime_error("State does not exist???");
+    s_iter->second.AddAction(_action);
+  };
+  
+  void GetActions(std::vector<unsigned int> &_actions, unsigned int _state) {
+    std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
+    if (s_iter == states.end())
+      throw std::runtime_error("State does not exist???");
+    s_iter->second.Actions(_actions);
+  };
+
+  bool GetActionBias(float &_bias, unsigned int _state, unsigned int _action) {
+    std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
+    if (s_iter == states.end())
+      throw std::runtime_error("State does not exist???");
+    return s_iter->second.ActionBias(_bias,_action);
+  };
   
 private:
-  std::map<unsigned long long, Qneuron> neurons; // set of all neurons, indexed by state
-  std::map<unsigned long long, std::vector<unsigned long long>> connections; // connections between neurons...
+  std::map<unsigned int, Qstate> states; // set of all states
 };
 

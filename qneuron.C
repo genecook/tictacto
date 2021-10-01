@@ -1,29 +1,29 @@
 #include <qneuron.h>
 
-void QneuronNetwork::AddNeuron(unsigned long long state, unsigned long long previous_state, int action, bool input_layer, bool output_layer) {
-    if (neurons.find(state) != neurons.end()) {
+void QneuronNetwork::AddState(unsigned long long state, unsigned long long previous_state, int action) {
+    if (states.find(state) != states.end()) {
       // add connection to existing neuron...
-      neurons[state].AddConnection(previous_state);
+      states[state].InitActionBias(previous_state);
     } else {
-      neurons[state] = Qneuron(state,previous_state,action, input_layer,output_layer);
+      states[state] = Qstate(state,action);
     }
 
-    std::map<unsigned long long, std::vector<unsigned long long>>::iterator ci = connections.find(previous_state);
+    std::map<unsigned long long, std::vector<unsigned long long>>::iterator ci = actions.find(previous_state);
 
-    if (ci == connections.end()) {
-      connections[previous_state].push_back(state);
+    if (ci == actions.end()) {
+      action[previous_state].push_back(state);
       return;
     }
     
-    bool connection_already_there = false;
+    bool action_already_there = false;
     for (auto si = (ci->second).begin(); si != (ci->second).end(); si++) {
        if ( (*si) == state) {
-	 connection_already_there = true;
+	 action_already_there = true;
 	 break;
        }
     }
-    if (!connection_already_there)
-      connections[previous_state].push_back(state);
+    if (!action_already_there)
+      actions[previous_state].push_back(state);
 }
 
 void QneuronNetwork::ShowConnections() {
@@ -44,4 +44,31 @@ void QneuronNetwork::ShowConnections() {
        std::cout << "\n";
     }
     std::cout << std::endl;
+}
+
+bool Qneuron::GetConnection(float &bias, unsigned long long state) {
+}
+
+// given an ordered set of states (neuron 'indices'), traverse the network and confirm the connections
+
+bool QneuronNetwork::Validate(std::vector<unsigned long long> expected_states) {
+  if (expected_states.size() < 2)
+    return false;
+
+  // 1st neuron in expected states should be on 'input' layer...
+  
+  std::map<unsigned long long, Qneuron>::iterator input_layer_neuron = neurons.find(expected_states[0]);
+  
+  if (input_layer_neuron == neurons.end())
+    return false;
+
+  if (!input_layer_neuron->second.InputLayer())
+    return false;
+  
+  for (int esi = 0; esi < expected_states.size(); esi++) {
+     std::map<unsigned long long, std::vector<unsigned long long>>::iterator neuron_connections = connections.find(expected_states[esi]);
+  }
+  
+
+    
 }

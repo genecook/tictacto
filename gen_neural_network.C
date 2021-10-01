@@ -63,10 +63,10 @@ public:
        std::cout << " prev-state: 0x" << std::hex << previous_board_state << " next-state: 0x"
 		 << next_board_state << std::dec << std::endl;
        
-       my_network.AddNeuron( next_board_state, previous_board_state, (i==0), (i==(moves.size()-1) ) );
+       //my_network.AddNeuron( next_board_state, previous_board_state, (i==0), (i==(moves.size()-1) ) );
     }
 
-    my_network.ShowConnections();
+    //my_network.ShowConnections();
   };
   
   void read_games_files(std::string &games_file) {
@@ -128,7 +128,7 @@ public:
   };
   
 private:
-  QneuronNetwork my_network;
+  Qtable my_qtable;
 };
 
 int main(int argc, char **argv) {
