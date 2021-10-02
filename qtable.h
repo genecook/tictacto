@@ -41,12 +41,9 @@ public:
   // return bias (Q value) for an action, or false should this action not be found,
   // is, is not possible, from this state...
   
-  bool ActionBias(float &bias, unsigned int _action) {
+  float ActionBias(unsigned int _action) {
     std::map<unsigned int, float>::iterator a_iter = actions.find(_action);
-    if (a_iter == actions.end())
-      return false;
-    bias = actions[_action];
-    return true;
+    return actions[a_iter->second];
   };
 
   // update the q value for some action...
@@ -97,6 +94,10 @@ public:
   Qtable() {};
 
   void AddState(unsigned int _state, int _action) {
+    unsigned int inx = _action >> 2;
+    unsigned int side = _action & 3;
+    std::cout << "      [AddState] state: 0x" << std::hex << _state << " action: 0x" << _action
+	      << "( index: 0x" << inx << ",side: " << side << ")" << std::dec << std::endl;
     std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
     if (s_iter == states.end())
       states[_state] = Qstate(_state,_action);
@@ -120,11 +121,11 @@ public:
     s_iter->second.Actions(_actions);
   };
 
-  bool GetActionBias(float &_bias, unsigned int _state, unsigned int _action) {
+  float GetActionBias(unsigned int _state, unsigned int _action) {
     std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
     if (s_iter == states.end())
       throw std::runtime_error("State does not exist???");
-    return s_iter->second.ActionBias(_bias,_action);
+    return s_iter->second.ActionBias(_action);
   };
 
   int StatesCount() { return states.size(); };
@@ -137,6 +138,9 @@ public:
     }
     return high_count;
   };
+
+  void ReadQtableFile(std::string &qtable_file);
+  void WriteQtableFile(std::string &qtable_file);
   
 private:
   std::map<unsigned int, Qstate> states; // set of all states

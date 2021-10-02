@@ -13,7 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 add_executable(ttt_games_gen ttt_games_gen.C)
 
-add_executable(ttt_qtable_builder gen_qtables.C)
+add_executable(ttt_qtable_builder gen_qtables.C qtable.C)
 
 
 enable_testing()

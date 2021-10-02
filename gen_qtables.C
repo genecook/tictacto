@@ -56,20 +56,21 @@ public:
     unsigned int previous_board_state = 0, next_board_state = 0;
     
     for (unsigned int i = 0; i < moves.size(); i++) {
-       std::cout << "   move:  board index=" << moves[i].board_index << ", side=" << ((moves[i].side==X) ? "X" : "O");
+      std::cout << "   move:  board index=" << moves[i].board_index << ", side=(" << moves[i].side << ")"
+		<< ((moves[i].side==X) ? "X" : "O");
 
        previous_board_state = next_board_state;
 
-       unsigned int binx = moves[i].board_index * 2;
-       next_board_state = (next_board_state | (3 << binx)) ^ (3 << binx) | (moves[i].side << binx);
+       unsigned int binx = moves[i].board_index << 2;
+       next_board_state = next_board_state | (moves[i].side << binx);
 
-       unsigned int action = binx | moves[i].side==X;
+       unsigned int action = binx | moves[i].side;
        
        std::cout << " prev-state: 0x" << std::hex << previous_board_state << " next-state: 0x"
 		 << next_board_state << std::dec << std::endl;
 
        try {
-         my_qtable.AddState( previous_board_state, action );
+         my_qtable.AddState( previous_board_state, action, next_board_state );
        } catch(std::runtime_error & e) {
 	 std::cout << e.what() << std::endl;
 	 throw std::runtime_error("One or more Qtable errors. Cannot continue.");
@@ -130,6 +131,7 @@ public:
   };
 
   void write_qtable_file(std::string &qtable_file) {
+    my_qtable.WriteQtableFile(qtable_file);
   };
   
 private:
@@ -138,11 +140,11 @@ private:
 
 int main(int argc, char **argv) {
   std::cout << "Generating neural network structure from games database..." << std::endl;
-
   int rcode = 0;
   
   try {
-    tictacto_qtable_generator my_qtable_builder("ttt_qtable_data.xml", "ttt_games_data.xml");
+    tictacto_qtable_generator my_qtable_builder("ttt_qtable_data_raw.xml", "ttt_games_data.xml");
+    rcode = system("xmllint --format ttt_qtable_data_raw.xml >ttt_qtable_data.xml");
     std::cout << "Qtable data file: " << "ttt_qtable_data.xml" << std::endl;
   } catch(...) {
     rcode = -1;
