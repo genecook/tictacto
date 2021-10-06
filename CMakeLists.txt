@@ -15,6 +15,8 @@ add_executable(ttt_games_gen ttt_games_gen.C)
 
 add_executable(ttt_qtable_builder gen_qtables.C qtable.C)
 
+add_executable(ttt_play_from_qtable qtables_play.C qtable.C)
+
 
 enable_testing()
 

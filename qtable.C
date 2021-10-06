@@ -8,8 +8,57 @@
 
 namespace pt = boost::property_tree;
 
+const pt::ptree& _empty_ptree() {
+  static pt::ptree t;
+  return t;
+}
+
+enum SQUARE { O=1, X=2, FREE=0 };
 
 void Qtable::ReadQtableFile(std::string &qtable_file) {
+    pt::ptree tree;
+    pt::read_xml(qtable_file, tree);
+
+    BOOST_FOREACH(pt::ptree::value_type &v, tree.get_child("qstates")) {
+      pt::ptree qstate_subtree = v.second;
+
+      std::string at = v.first + ".<xmlattr>";
+      
+      const pt::ptree & attributes = v.second.get_child("<xmlattr>", _empty_ptree());
+
+      unsigned int state = 0;
+
+      BOOST_FOREACH(const pt::ptree::value_type &va, attributes) {
+	if (!strcmp(va.first.data(),"state")) {
+	  sscanf(va.second.data().c_str(),"0x%x",&state);
+	  break;
+	}
+      }
+
+      BOOST_FOREACH(pt::ptree::value_type &mv, qstate_subtree.get_child("actions")) {
+        std::string at = mv.first + ".<xmlattr>";
+      
+        const pt::ptree & attributes = mv.second.get_child("<xmlattr>", _empty_ptree());
+
+	unsigned int action = 0;
+	unsigned int board_index = 0;
+	unsigned int side = FREE;
+	float qbias = 0.0;
+	  
+	BOOST_FOREACH(const pt::ptree::value_type &va, attributes) {	
+	  if (!strcmp(va.first.data(),"action"))
+	    sscanf(va.second.data().c_str(),"0x%x",&action);
+	  else if (!strcmp(va.first.data(),"board_index"))
+	    sscanf(va.second.data().c_str(),"%u",&board_index);
+	  else if (!strcmp(va.first.data(),"side"))
+	    side = (va.second.data() == "X") ? X : O;
+	  else if (!strcmp(va.first.data(),"qbias"))
+	    sscanf(va.second.data().c_str(),"%f",&qbias);
+       	}
+	
+	AddState(state,action,qbias);
+      }
+    }
 }
 
 void Qtable::WriteQtableFile(std::string &qtable_file) {
