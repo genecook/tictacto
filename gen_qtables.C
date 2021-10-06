@@ -5,6 +5,7 @@
 #include <vector>
 #include <exception>
 #include <iostream>
+#include <algorithm>
 
 #include <stdlib.h>
 #include <time.h>
@@ -48,36 +49,70 @@ public:
     int side;
   };
 
-  void extract_states(int game_number, unsigned long long encoded_moves, bool is_win, std::vector<struct move> &moves) {
+  void extract_states(int game_number, unsigned long long encoded_moves, bool is_win,
+		      std::vector<struct move> &moves) {
     std::cout << "game " << game_number << std::endl;
     std::cout << "   encoded moves: 0x" << std::hex << encoded_moves << std::dec << std::endl;
     std::cout << "   outcome: " << (is_win ? "WIN" : "DRAW") << std::endl;
 
     unsigned int previous_board_state = 0, next_board_state = 0;
+
+    struct move_state_q {
+      move_state_q(unsigned int _board_state, unsigned int _action)
+	: board_state(_board_state), action(_action) {};
+      unsigned int board_state;
+      unsigned int action;
+    };
+
+    std::vector<struct move_state_q> moves_for_bias_update;
     
     for (unsigned int i = 0; i < moves.size(); i++) {
-      std::cout << "   move:  board index=" << moves[i].board_index << ", side=(" << moves[i].side << ")"
+      std::cout << "   move:  board index=" << moves[i].board_index
+		<< ", side=(" << moves[i].side << ")"
 		<< ((moves[i].side==X) ? "X" : "O");
 
        previous_board_state = next_board_state;
 
+       bool is_computers_move = (moves[i].side==X); // for now, computer always moves 1st
+       
        unsigned int binx = moves[i].board_index << 2;
        next_board_state = next_board_state | (moves[i].side << binx);
 
        unsigned int action = binx | moves[i].side;
        
-       std::cout << " prev-state: 0x" << std::hex << previous_board_state << " next-state: 0x"
-		 << next_board_state << std::dec << std::endl;
+       std::cout << " prev-state: 0x" << std::hex << previous_board_state
+		 << " next-state: 0x" << next_board_state << std::dec << std::endl;
 
        try {
-         my_qtable.AddState( previous_board_state, action, next_board_state );
+         my_qtable.AddState( previous_board_state, action );
+	 if (is_computers_move) {
+	   struct move_state_q X(previous_board_state,action);
+	   moves_for_bias_update.push_back(X);
+	 }
        } catch(std::runtime_error & e) {
 	 std::cout << e.what() << std::endl;
 	 throw std::runtime_error("One or more Qtable errors. Cannot continue.");
        }
     }
+
+    // update 'winning' move action-Q values for 'this' side, in reverse order, as each
+    // previous move's Q value is proportional to the next move Q value...
+    
+    std::reverse(moves_for_bias_update.begin(), moves_for_bias_update.end());
+
+    float incrementalQ = is_win ? 0.9 : 0.6; // larger reward and thus Q for win vs draw
+    
+    for (auto m_iter = moves_for_bias_update.begin(); m_iter != moves_for_bias_update.end(); m_iter++) {
+      std::cout << "!!! updating bias for state/action 0x" << std::hex << (*m_iter).board_state
+		<< "/0x" << (*m_iter).action << std::dec << std::endl;
+      my_qtable.UpdateActionBias( (*m_iter).board_state, (*m_iter).action, incrementalQ );
+      std::cout << "!!! updated bias: " << my_qtable.GetActionBias((*m_iter).board_state, (*m_iter).action)
+		<< std::endl;
+      // update incrementalQ, ask me how...
+      incrementalQ *= 0.9;
+    }
   };
-  
+
   void read_games_files(std::string &games_file) {
     pt::ptree tree;
     pt::read_xml(games_file, tree);

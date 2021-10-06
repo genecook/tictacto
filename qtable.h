@@ -43,12 +43,19 @@ public:
   
   float ActionBias(unsigned int _action) {
     std::map<unsigned int, float>::iterator a_iter = actions.find(_action);
-    return actions[a_iter->second];
+    if (a_iter == actions.end())
+      throw std::runtime_error("Action does not exist???");
+    return actions[_action];
   };
 
   // update the q value for some action...
   
-  void UpdateActionBias(unsigned int _action, float _qval) { actions[_action] = _qval; };
+  void UpdateActionBias(unsigned int _action, float _qval) {
+    actions[_action] += _qval;
+    std::cout << "[UpdateActionBias] state: 0x" << std::hex << State()
+	      << " action: 0x" << _action
+	      << " bias: " << std::dec << actions[_action] << std::endl;
+  };
 
   // return the set of actions possible from this state...
   
@@ -113,7 +120,16 @@ public:
       throw std::runtime_error("State does not exist???");
     s_iter->second.AddAction(_action);
   };
+
+  // update the q value for some action...
   
+  void UpdateActionBias(unsigned int _state, unsigned int _action, float _qval) {
+    std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
+    if (s_iter == states.end())
+      throw std::runtime_error("State does not exist???");
+    s_iter->second.UpdateActionBias(_action,_qval);
+  };
+
   void GetActions(std::vector<unsigned int> &_actions, unsigned int _state) {
     std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
     if (s_iter == states.end())
