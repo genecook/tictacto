@@ -8,7 +8,7 @@
 
 namespace pt = boost::property_tree;
 
-const pt::ptree& _empty_ptree() {
+const pt::ptree& qtable_empty_ptree() {
   static pt::ptree t;
   return t;
 }
@@ -24,7 +24,7 @@ void Qtable::ReadQtableFile(std::string &qtable_file) {
 
       std::string at = v.first + ".<xmlattr>";
       
-      const pt::ptree & attributes = v.second.get_child("<xmlattr>", _empty_ptree());
+      const pt::ptree & attributes = v.second.get_child("<xmlattr>", qtable_empty_ptree());
 
       unsigned int state = 0;
 
@@ -38,7 +38,7 @@ void Qtable::ReadQtableFile(std::string &qtable_file) {
       BOOST_FOREACH(pt::ptree::value_type &mv, qstate_subtree.get_child("actions")) {
         std::string at = mv.first + ".<xmlattr>";
       
-        const pt::ptree & attributes = mv.second.get_child("<xmlattr>", _empty_ptree());
+        const pt::ptree & attributes = mv.second.get_child("<xmlattr>", qtable_empty_ptree());
 
 	unsigned int action = 0;
 	unsigned int board_index = 0;

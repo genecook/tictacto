@@ -11,9 +11,9 @@ find_package(Boost 1.62.0)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(ttt_games_gen ttt_games_gen.C)
+add_executable(ttt_games_gen ttt_games_gen.C tictacto_games_generator.C)
 
-add_executable(ttt_qtable_builder gen_qtables.C qtable.C)
+add_executable(ttt_qtable_builder gen_qtables.C tictacto_qtable_generator.C qtable.C)
 
 add_executable(ttt_play_from_qtable qtables_play.C qtable.C)
 
