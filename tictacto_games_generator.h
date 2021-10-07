@@ -127,6 +127,33 @@ public:
 
   unsigned int random_game(bool display_outcome = false);
 
+  void gen_random_game_set(int number_of_games) {
+    for (int i = 0; i < number_of_games; i++) {
+       random_game();
+       record_game();
+    }
+  };
+
+  void dump_game_stats() {
+    std::cout << "# of unique games:    " << num_unique_games() << "\n";
+    std::cout << "# of duplicate games: " << num_duplicate_games() << "\n";
+    std::cout << "# of wins for X:      " << num_wins_X() << "\n";
+    std::cout << "# of wins for O:      " << num_wins_O() << "\n";
+    std::cout << "# of draws:           " << num_draws() << std::endl;
+    std::cout << "shortest game:        " << the_shortest_game() << std::endl;
+    std::cout << "longest game:         " << the_longest_game() << std::endl;
+
+    int total_board_states = 0;
+  
+    for (int i = 0; (i < 16) && (num_board_states(i) > 0); i++) {
+      std::cout << "# of board states (move " << (i + 1) << "): "
+		<< num_board_states(i) << std::endl;
+      total_board_states += num_board_states(i);
+    }
+  
+    std::cout << "total # of board states: " << total_board_states << std::endl;
+  };
+  
   int num_wins_X() { return wins_for_X; };
   int num_wins_O() { return wins_for_O; };
   int num_draws()  { return draws; };
