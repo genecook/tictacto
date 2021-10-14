@@ -1,3 +1,5 @@
+#ifndef QTABLE_GENERATOR_INCLUDES
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -10,9 +12,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <tictacto_common.h>
 #include <qtable.h>
 
-enum SQUARE { O=1, X=2, FREE=0 };
 
 class tictacto_qtable_generator {
 public:
@@ -50,4 +52,7 @@ public:
 private:
   Qtable my_qtable;
 };
-  
+
+#endif
+#define QTABLE_GENERATOR_INCLUDES 1
+

@@ -1,3 +1,4 @@
+#include <tictacto_common.h>
 #include <qtable.h>
 
 #include <time.h>
@@ -12,8 +13,6 @@ const pt::ptree& qtable_empty_ptree() {
   static pt::ptree t;
   return t;
 }
-
-enum SQUARE { O=1, X=2, FREE=0 };
 
 void Qtable::ReadQtableFile(std::string &qtable_file) {
     pt::ptree tree;

@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <tictacto_common.h>
 #include <qtable.h>
 
-enum SQUARE { O=1, X=2, FREE=0 };
 
 int main(int argc, char **argv) {
   std::cout << "Dude!" << std::endl;

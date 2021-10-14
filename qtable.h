@@ -1,3 +1,5 @@
+#ifndef QTABLE_INCLUDES
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -8,6 +10,8 @@
 
 #include <stdlib.h>
 #include <time.h>
+
+#include <tictacto_common.h>
 
 //    srand48(time(NULL));
 
@@ -163,4 +167,7 @@ public:
 private:
   std::map<unsigned int, Qstate> states; // set of all states
 };
+
+#endif
+#define QTABLE_INCLUDES 1
 

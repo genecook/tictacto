@@ -1,3 +1,5 @@
+#ifndef GAMES_GENERATOR_INCLUDES
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -8,7 +10,7 @@
 
 #include <time.h>
 
-enum SQUARE { O=1, X=2, FREE=0 };
+#include <tictacto_common.h>
 
 // used when recording games:
 
@@ -178,6 +180,9 @@ private:
   int shortest_game;
   int longest_game;    
 };
+
+#endif
+#define GAMES_GENERATOR_INCLUDES 1
 
 
   
