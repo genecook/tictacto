@@ -175,6 +175,7 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
       game_over = true;
       its_a_draw = true;
       if (display_outcome) std::cout << "DRAW\n";
+      side = ( (rand() & 0x1) == 1 ) ? X : O; // for a draw, just arbitrarily pick a side(?)
       break;
     }
     
@@ -195,6 +196,7 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
     side = (side == X) ? O : X;
   }
 
+  
   std::cout << "random game ends after " << move_count << " moves." << std::endl;
 
   return moves;
