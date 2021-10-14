@@ -16,7 +16,7 @@
 
 struct game_record {
   game_record() {};
-  game_record(int _side, bool _is_win, unsigned long long _moves) : side(_side),is_win(_is_win),moves(_moves) {};
+  game_record(int _side, bool _is_win, unsigned long long _moves) : side(_side), is_win(_is_win), moves(_moves) {};
   
   int side;   // O=1, X=2
   bool is_win; // true for win, else draw
@@ -126,12 +126,18 @@ public:
     std::cout << "    + + \n";
     std::cout << "   " << sqval(6) << "|" << sqval(7) << "|" << sqval(8) << std::endl;  
   };
-
+ 
+  int random_square();
+ 
   unsigned int random_game(bool display_outcome = false);
+  unsigned int play_to_win(bool display_outcome = false);
 
-  void gen_random_game_set(int number_of_games) {
+  void gen_random_game_set(int number_of_games, bool _play_to_win = false) {
     for (int i = 0; i < number_of_games; i++) {
-       random_game();
+       if (_play_to_win)
+ 	 play_to_win();
+       else
+        random_game();
        record_game();
     }
   };

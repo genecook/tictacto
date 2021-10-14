@@ -1,10 +1,16 @@
 #include <tictacto_games_generator.h>
 
+#include <algorithm>
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
 
 namespace pt = boost::property_tree;
+
+//*****************************************************************************************
+// after generating N games, write to (XML) file..
+//*****************************************************************************************
 
 void tictacto_games_generator::write_games_file(std::string gfile) {
     pt::ptree tree;
@@ -20,6 +26,8 @@ void tictacto_games_generator::write_games_file(std::string gfile) {
        char encoding[128];
        sprintf(encoding,"0x%08llx",uiter->first);
        game_subtree.put("<xmlattr>.moves_encoded",encoding);
+
+       game_subtree.add("<xmlattr>.side",(uiter->second.side == X) ? "X" : "O");
 
        game_subtree.add("<xmlattr>.outcome",(uiter->second.is_win) ? "WIN" : "DRAW");
 	 
@@ -53,6 +61,10 @@ void tictacto_games_generator::write_games_file(std::string gfile) {
 
     pt::write_xml(gfile,tree);
 }
+
+//*****************************************************************************************
+// some simple-minded tic-tac-to heuristics...
+//*****************************************************************************************
 
 bool tictacto_games_generator::win(unsigned int side) {
     // wins horizontal...
@@ -114,7 +126,86 @@ bool tictacto_games_generator::must_block(int &block_square, unsigned int side, 
     return false;
 }
 
+//*****************************************************************************************
+// generate random games; retain games that end in win or draw...
+//*****************************************************************************************
+
+int tictacto_games_generator::random_square() {
+  int free_square = -1;
+  
+  std::vector<int> free_squares;
+  for (int i = 0; i < 9; i++) {
+    if ( square(i) == FREE ) free_squares.push_back(i);
+  }
+  if (free_squares.size() > 0) {
+    std::random_shuffle(free_squares.begin(),free_squares.end());
+    free_square = free_squares[0];
+  }
+    
+  return free_square;
+};
+
 unsigned int tictacto_games_generator::random_game(bool display_outcome) {
+  std::cout << "random game..." << std::endl;
+
+  display_outcome = true;
+  // put come code here dude...
+
+  init_for_next_game();
+
+  bool game_over = false;
+
+  int move_count = 0;
+  
+  side = X; // X always goes first...
+
+  while(!game_over) {
+    // make move, this side...
+      
+    int ns = random_square();
+
+    if ( ns >= 0) {
+      // make the move...
+      std::cout << " next move: ns " << ns << " side: " << ((side==X) ? "X" : "O") << std::endl;
+      set_square(ns, side);
+      record_move(ns, side);
+      move_count++;
+    } else {
+      // no free squares...
+      game_over = true;
+      its_a_draw = true;
+      if (display_outcome) std::cout << "DRAW\n";
+      break;
+    }
+    
+    // check for win...
+    if (win(side)) {
+      game_over = true;
+      if (side==X)
+	X_wins = true;
+      else {
+	side = O;   // X went first, but O won!
+	O_wins = true;
+      }
+      if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
+      break;
+    }
+
+    // switch sides...
+    side = (side == X) ? O : X;
+  }
+
+  std::cout << "random game ends after " << move_count << " moves." << std::endl;
+
+  return moves;
+}
+
+//*****************************************************************************************
+// computer always plays as X; use simple heuristics to increase chances of win; retain
+// games that end in win or draw...
+//*****************************************************************************************
+
+unsigned int tictacto_games_generator::play_to_win(bool display_outcome) {
     init_for_next_game();
 
     bool game_over = false;
