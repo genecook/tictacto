@@ -40,7 +40,7 @@ public:
     int side;
   };
 
-  void extract_states(int game_number, unsigned long long encoded_moves, bool is_win,
+  void extract_states(int game_number, unsigned long long encoded_moves, bool is_win, int winning_side,
 		      std::vector<struct move> &moves);
 
   void read_games_files(std::string &games_file);

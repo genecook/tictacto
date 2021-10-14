@@ -12,11 +12,12 @@ const pt::ptree& qtable_generator_empty_ptree() {
 }
 
 void tictacto_qtable_generator::extract_states(int game_number, unsigned long long encoded_moves, bool is_win,
-		      std::vector<struct move> &moves) {
+					       int computers_side, std::vector<struct move> &moves) {
     std::cout << "game " << game_number << std::endl;
     std::cout << "   encoded moves: 0x" << std::hex << encoded_moves << std::dec << std::endl;
     std::cout << "   outcome: " << (is_win ? "WIN" : "DRAW") << std::endl;
-
+    std::cout << "   side: " << ((computers_side == X) ? "X" : "O") << std::endl;
+    
     unsigned int previous_board_state = 0, next_board_state = 0;
 
     struct move_state_q {
@@ -35,7 +36,7 @@ void tictacto_qtable_generator::extract_states(int game_number, unsigned long lo
 
        previous_board_state = next_board_state;
 
-       bool is_computers_move = (moves[i].side==X); // for now, computer always moves 1st
+       bool is_computers_move = (moves[i].side==computers_side);
        
        unsigned int binx = moves[i].board_index << 2;
        next_board_state = next_board_state | (moves[i].side << binx);
@@ -89,12 +90,15 @@ void tictacto_qtable_generator::read_games_files(std::string &games_file) {
       int game_number = -1;
       unsigned long long encoded_moves = 0;
       bool is_win = false;
+      int winning_side = -1;
       
       BOOST_FOREACH(const pt::ptree::value_type &va, attributes) {
 	if (!strcmp(va.first.data(),"number"))
 	  sscanf(va.second.data().c_str(),"%d",&game_number);
 	else if (!strcmp(va.first.data(),"moves_encoded"))
 	  sscanf(va.second.data().c_str(),"0x%llx",&encoded_moves);
+	else if (!strcmp(va.first.data(),"side"))
+	  winning_side = !strcmp(va.second.data().c_str(),"X") ? X : O;
 	else
 	  is_win = !strcmp(va.first.data(),"outcome") && (va.second.data() == "WIN");
       }
@@ -122,7 +126,7 @@ void tictacto_qtable_generator::read_games_files(std::string &games_file) {
         moves.push_back(move(board_index,side));
       }
 
-      extract_states(game_number,encoded_moves,is_win,moves);
+      extract_states(game_number,encoded_moves,is_win,winning_side,moves);
     }
 }
 
