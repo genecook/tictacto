@@ -11,11 +11,16 @@ const pt::ptree& qtable_generator_empty_ptree() {
   return t;
 }
 
-void tictacto_qtable_generator::extract_states(int game_number, unsigned long long encoded_moves, bool is_win,
+void tictacto_qtable_generator::extract_states(int game_number, unsigned long long encoded_moves, int outcome,
 					       int computers_side, std::vector<struct move> &moves) {
     std::cout << "game " << game_number << std::endl;
     std::cout << "   encoded moves: 0x" << std::hex << encoded_moves << std::dec << std::endl;
-    std::cout << "   outcome: " << (is_win ? "WIN" : "DRAW") << std::endl;
+    switch(outcome) {
+      case WIN:  std::cout << "   outcome: WIN" << std::endl;
+      case LOSS: std::cout << "   outcome: LOSS" << std::endl;
+      case DRAW: std::cout << "   outcome: DRAW" << std::endl;
+      default: break;
+    }
     std::cout << "   side: " << ((computers_side == X) ? "X" : "O") << std::endl;
     
     unsigned int previous_board_state = 0, next_board_state = 0;
@@ -63,8 +68,15 @@ void tictacto_qtable_generator::extract_states(int game_number, unsigned long lo
     
     std::reverse(moves_for_bias_update.begin(), moves_for_bias_update.end());
 
-    float incrementalQ = is_win ? 0.9 : 0.6; // larger reward and thus Q for win vs draw
-    
+    float incrementalQ; 
+
+    switch(outcome) {
+      case WIN:  incrementalQ = 0.9;  break; // larger reward and thus Q for win vs draw
+      case DRAW: incrementalQ = 0.6;  break;
+      case LOSS: incrementalQ = -0.9; break; // penalty for loss
+      default: break;
+    }
+
     for (auto m_iter = moves_for_bias_update.begin(); m_iter != moves_for_bias_update.end(); m_iter++) {
       std::cout << "!!! updating bias for state/action 0x" << std::hex << (*m_iter).board_state
 		<< "/0x" << (*m_iter).action << std::dec << std::endl;
@@ -89,7 +101,7 @@ void tictacto_qtable_generator::read_games_files(std::string &games_file) {
 
       int game_number = -1;
       unsigned long long encoded_moves = 0;
-      bool is_win = false;
+      int outcome = -1;
       int winning_side = -1;
       
       BOOST_FOREACH(const pt::ptree::value_type &va, attributes) {
@@ -99,8 +111,14 @@ void tictacto_qtable_generator::read_games_files(std::string &games_file) {
 	  sscanf(va.second.data().c_str(),"0x%llx",&encoded_moves);
 	else if (!strcmp(va.first.data(),"side"))
 	  winning_side = !strcmp(va.second.data().c_str(),"X") ? X : O;
-	else
-	  is_win = !strcmp(va.first.data(),"outcome") && (va.second.data() == "WIN");
+	else if (!strcmp(va.first.data(),"outcome")) {
+	  if (va.second.data() == "WIN")
+	    outcome = WIN;
+	  else if (va.second.data() == "LOSS")
+	    outcome = LOSS;
+	  else
+	    outcome = DRAW;
+	  }
       }
       
       std::vector<struct move> moves;
@@ -126,7 +144,7 @@ void tictacto_qtable_generator::read_games_files(std::string &games_file) {
         moves.push_back(move(board_index,side));
       }
 
-      extract_states(game_number,encoded_moves,is_win,winning_side,moves);
+      extract_states(game_number,encoded_moves,outcome,winning_side,moves);
     }
 }
 

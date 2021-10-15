@@ -29,7 +29,12 @@ void tictacto_games_generator::write_games_file(std::string gfile) {
 
        game_subtree.add("<xmlattr>.side",(uiter->second.side == X) ? "X" : "O");
 
-       game_subtree.add("<xmlattr>.outcome",(uiter->second.is_win) ? "WIN" : "DRAW");
+       switch(uiter->second.outcome) {
+         case WIN:  game_subtree.add("<xmlattr>.outcome","WIN");  break;
+         case LOSS: game_subtree.add("<xmlattr>.outcome","LOSS"); break;
+         case DRAW: game_subtree.add("<xmlattr>.outcome","DRAW"); break;
+         default: break;
+       }
 	 
        int index = 99;
        int side = FREE;
@@ -159,6 +164,8 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
   
   side = X; // X always goes first...
 
+  computers_side = ( (rand() & 0x1) == 1 ) ? X : O; // randomly choose side for computer
+  
   while(!game_over) {
     // make move, this side...
       
@@ -175,7 +182,6 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
       game_over = true;
       its_a_draw = true;
       if (display_outcome) std::cout << "DRAW\n";
-      side = ( (rand() & 0x1) == 1 ) ? X : O; // for a draw, just arbitrarily pick a side(?)
       break;
     }
     
@@ -185,7 +191,6 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
       if (side==X)
 	X_wins = true;
       else {
-	side = O;   // X went first, but O won!
 	O_wins = true;
       }
       if (display_outcome) std::cout << "WIN FOR " << (side==X ? "X" : "O") << "\n";
@@ -195,7 +200,6 @@ unsigned int tictacto_games_generator::random_game(bool display_outcome) {
     // switch sides...
     side = (side == X) ? O : X;
   }
-
   
   std::cout << "random game ends after " << move_count << " moves." << std::endl;
 
@@ -213,6 +217,8 @@ unsigned int tictacto_games_generator::play_to_win(bool display_outcome) {
     bool game_over = false;
 
     side = X; // X always goes first...
+  
+    computers_side = ( (rand() & 0x1) == 1 ) ? X : O; // randomly choose side for computer
   
     while(!game_over) {
       // choose square for next move, this side...

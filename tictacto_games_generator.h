@@ -16,17 +16,17 @@
 
 struct game_record {
   game_record() {};
-  game_record(int _side, bool _is_win, unsigned long long _moves) : side(_side), is_win(_is_win), moves(_moves) {};
+  game_record(int _side, int _outcome, unsigned long long _moves) : side(_side), outcome(_outcome), moves(_moves) {};
   
   int side;   // O=1, X=2
-  bool is_win; // true for win, else draw
+  int outcome; // from computers perspective
   unsigned long long moves; // see tictacto_games_generator.record_move method
 };
 
 class tictacto_games_generator {
 public:
-  tictacto_games_generator() : board(0), side(X), moves(0), duplicate_games(0), X_wins(false), O_wins(false),
-			       its_a_draw(false), wins_for_X(0), wins_for_O(0), draws(0),shortest_game(99),
+  tictacto_games_generator() : board(0), side(X), computers_side(X), moves(0), duplicate_games(0), X_wins(false), O_wins(false),
+			       its_a_draw(false), wins_for_X(0), wins_for_O(0), draws(0), shortest_game(99),
 			       longest_game(0) {};
 
   void init_for_next_game() {
@@ -68,8 +68,13 @@ public:
   
   void record_game() {
     if (unique_games.find(moves) == unique_games.end()) {
-      struct game_record outcome(side,!its_a_draw,moves);
-      unique_games[moves] = outcome;
+      int outcome;
+      if (X_wins || O_wins)
+	outcome = (computers_side == side) ? WIN : LOSS;
+      else
+	outcome = DRAW;
+      struct game_record game_outcome(computers_side,outcome,moves);
+      unique_games[moves] = game_outcome;
       if (X_wins) wins_for_X++;
       if (O_wins) wins_for_O++;
       if (its_a_draw) draws++;  
@@ -172,6 +177,7 @@ public:
 private:
   unsigned int board;
   int side;
+  int computers_side;
   unsigned long long moves;
   std::vector<unsigned int> moves_for_replay;
   std::map<unsigned long long, struct game_record> unique_games;
