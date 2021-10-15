@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
 
   tictacto_games_generator my_generator;
 
-  my_generator.gen_random_game_set(10000);
+  my_generator.gen_random_game_set(20000);
 
   my_generator.write_games_file("ttt_games_data_raw.xml");
 
