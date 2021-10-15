@@ -43,14 +43,21 @@ void tictacto_qtable_generator::extract_states(int game_number, unsigned long lo
 
        bool is_computers_move = (moves[i].side==computers_side);
        
-       unsigned int binx = moves[i].board_index << 2;
+       unsigned int binx = moves[i].board_index << 1;
+       std::cout << "  binx: " << binx << " encoded move: "
+		 << (moves[i].side << binx) << std::endl;
        next_board_state = next_board_state | (moves[i].side << binx);
 
-       unsigned int action = binx | moves[i].side;
+       unsigned int action = (moves[i].board_index << 2) | moves[i].side;
        
        std::cout << " prev-state: 0x" << std::hex << previous_board_state
 		 << " next-state: 0x" << next_board_state << std::dec << std::endl;
 
+       if (next_board_state == previous_board_state) {
+	 std::cout << "Next board == previous board state???" << std::endl;
+	 throw std::runtime_error("One or more Qtable errors. Cannot continue.");
+       }
+       
        try {
          my_qtable.AddState( previous_board_state, action );
 	 if (is_computers_move) {
