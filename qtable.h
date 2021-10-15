@@ -54,11 +54,12 @@ public:
 
   // update the q value for some action...
   
-  void UpdateActionBias(unsigned int _action, float _qval) {
+  void UpdateActionBias(unsigned int _action, float _qval, bool verbose = true) {
     actions[_action] += _qval;
-    std::cout << "[UpdateActionBias] state: 0x" << std::hex << State()
-	      << " action: 0x" << _action
-	      << " bias: " << std::dec << actions[_action] << std::endl;
+    if (verbose)
+      std::cout << "[UpdateActionBias] state: 0x" << std::hex << State()
+		<< " action: 0x" << _action
+		<< " bias: " << std::dec << actions[_action] << std::endl;
   };
 
   // return the set of actions possible from this state...
@@ -104,18 +105,19 @@ class Qtable {
 public:
   Qtable() {};
 
-  void AddState(unsigned int _state, int _action, float _qval = 0.0) {
+  void AddState(unsigned int _state, int _action, float _qval = 0.0,bool verbose = true) {
     unsigned int inx = _action >> 2;
     unsigned int side = _action & 3;
-    std::cout << "      [AddState] state: 0x" << std::hex << _state << " action: 0x" << _action
-	      << "( index: 0x" << inx << ",side: " << side << ")" << std::dec << std::endl;
+    if (verbose)
+      std::cout << "      [AddState] state: 0x" << std::hex << _state << " action: 0x" << _action
+  	        << "( index: 0x" << inx << ",side: " << side << ")" << std::dec << std::endl;
     std::map<unsigned int, Qstate>::iterator s_iter = states.find(_state);
     if (s_iter == states.end())
       states[_state] = Qstate(_state,_action);
     else
       s_iter->second.AddAction(_action);
     if (_qval != 0.0)
-      states[_state].UpdateActionBias(_action,_qval);
+      states[_state].UpdateActionBias(_action,_qval,verbose);
   };
 
   bool StateExists(unsigned int _state) { return (states.find(_state) != states.end()); };

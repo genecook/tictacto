@@ -55,7 +55,7 @@ void Qtable::ReadQtableFile(std::string &qtable_file) {
 	    sscanf(va.second.data().c_str(),"%f",&qbias);
        	}
 	
-	AddState(state,action,qbias);
+	AddState(state,action,qbias,false);
       }
     }
 }
