@@ -65,7 +65,7 @@ bool three_in_a_row(unsigned int &side, int set) {
 
 bool a_win(unsigned int side) {
   unsigned int winning_side;
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < 8; i++) {
     if (three_in_a_row(winning_side,i) && (winning_side == side))
       return true;
   }
@@ -134,9 +134,18 @@ void play_a_game() {
   std::cout << "X or O?";
   std::string line;
   std::getline(std::cin, line);
-  std::cout << "user chose: " << line << std::endl;
+  std::cout << "user response: '" << line << "'" << std::endl;
 
+  if ( (line == "X") || (line == "O") ) {
+    // ok...
+  } else {
+    std::cout << "CHOOSE EITHER 'X' OR 'O'..." << std::endl;
+    return;
+  }
+  
   if (line == "O") {
+    computers_side = X;
+    opponents_side = O;
     get_computers_move();
   } else {
     computers_side = O;
